@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.byzx.mapper.RoleInfoMapper" >
+	<resultMap id="RolelistMap" type="Role" >
+	    <id column="role_id" property="roleId" jdbcType="INTEGER" />
+	    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
+	    <result column="role_desc" property="roleDesc" jdbcType="VARCHAR" />
+	    <result column="role_code" property="roleCode" jdbcType="VARCHAR" />
+	    <result column="role_state" property="roleState" jdbcType="CHAR" />
+	    <result column="create_by" property="createBy" jdbcType="INTEGER" />
+	    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+	    <result column="update_by" property="updateBy" jdbcType="INTEGER" />
+	    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+	    <association property="userInfo" javaType="UserInfo">
+	    	<id column="user_id" property="userId"></id>
+	    	<result column="user_code" property="userCode"></result>
+	    </association>
+  	</resultMap>
+	<!-- 查询角色列表 -->
+	<select id="selectRolelist" parameterType="HashMap" resultMap="RolelistMap">
+	SELECT r.* ,ui.user_code  FROM role r,user_info ui
+		<where>
+			and r.create_by=ui.user_id
+			<include refid="selectRoleBycolumn"></include>
+		</where>
+	</select>
+	<!-- 模糊查-->
+	<sql id="selectRoleBycolumn">
+		<if test="role.roleName != null and role.roleName!=''">
+			AND r.role_name like concat("%",#{role.roleName},"%")
+		</if>
+		<if test="role.roleState != null and role.roleState !=''">
+			and r.role_state=#{role.roleState}
+		</if>
+		<if test="page != null and page !=''">
+			<if test="page.pageSize != null and page.currNo != null">
+				LIMIT #{page.limitIndex},#{page.pageSize}
+			</if>
+		</if>
+	</sql>
+	<!--  ajax 唯一验证 roleName roleCode role url -->
+	<select id="selectRoleInfo" parameterType="Role" resultMap="RolelistMap">
+		select * from role 
+		<where>
+			<if test="roleName!=null and roleName!=''">
+				AND role_name=#{roleName}
+			</if>
+			<if test="roleCode!=null and roleCode!=''">
+				and role_code = #{roleCode}
+			</if>
+		</where>
+	</select>
+	<!-- 启用禁用 -->
+	 <update id="updateUserStateById" parameterType="Role">
+	  	UPDATE role SET role_state=#{roleState } where role_id=#{roleId}
+	 </update>
+	 <!-- 删除角色 -->
+	 <delete id="deleteRoleById" parameterType="Integer" >
+	 	delete from role where role_id=#{roleId}
+	 </delete>
+	<!-- 添加角色 -->
+	<insert id="addRole" parameterType="Role">
+		INSERT INTO role(role_name,role_desc,role_code,create_by) VALUES(#{roleName},#{roleDesc},#{roleCode},#{createBy})
+	</insert>
+	<!-- 修改role -->
+	<update id="updateRole" parameterType="Role">
+		update role set role_name=#{roleName},role_desc=#{roleDesc} where role_id=#{roleId}
+	</update>
+	<!-- 查询角色所拥有的权限 -->
+	<select id="selectAuthByRoleId" parameterType="Integer" resultType="AuthInfo">
+		SELECT auth_id authId FROM  role_auth  WHERE role_id=#{roleId}
+	</select>
+	<!-- 删除角色的权限 -->
+	<delete id="deleteRoleAuth" parameterType="Integer">
+		delete from role_auth where role_id=#{roleId}
+	</delete>
+	<!-- 添加角色权限 -->
+	<insert id="addRoleAuth" parameterType="RoleAuth">
+		insert into role_auth(role_id,auth_id) values(#{roleId},#{authId})
+	</insert>
+</mapper>

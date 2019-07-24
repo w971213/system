@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.byzx.mapper.AuthInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.byzx.vo.AuthInfo" >
+    <id column="auth_id" property="authId" jdbcType="INTEGER" />
+    <result column="parent_id" property="parentId" jdbcType="INTEGER" />
+    <result column="auth_name" property="authName" jdbcType="VARCHAR" />
+    <result column="auth_desc" property="authDesc" jdbcType="VARCHAR" />
+    <result column="auth_grade" property="authGrade" jdbcType="INTEGER" />
+    <result column="auth_type" property="authType" jdbcType="CHAR" />
+    <result column="auth_url" property="authUrl" jdbcType="VARCHAR" />
+    <result column="auth_code" property="authCode" jdbcType="VARCHAR" />
+    <result column="auth_order" property="authOrder" jdbcType="INTEGER" />
+    <result column="auth_state" property="authState" jdbcType="CHAR" />
+    <result column="create_by" property="createBy" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_by" property="updateBy" jdbcType="INTEGER" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <!-- 查找用户权限分等级 登录时候 -->
+  <select id="selectUserInfoAuth" parameterType="HashMap" resultMap="BaseResultMap">
+  	SELECT ai.*  FROM user_info ui,user_auth ua,auth_info ai
+	WHERE ui.user_id=ua.user_id AND ai.auth_id=ua.auth_id 
+		AND ui.user_state=1 AND ui.is_delete=0 AND ai.auth_state=1
+			AND ui.user_id=#{userId} AND parent_id=#{authId}
+	UNION
+	 SELECT DISTINCT ai.*  FROM user_info ui,user_role ur,role r, role_auth ra,auth_info ai
+		WHERE  ui.user_id=ur.user_id AND ur.role_id=r.role_id AND r.role_id=ra.role_id AND ra.auth_id=ai.auth_id
+			AND ui.user_state=1 AND ui.is_delete=0 AND r.role_state=1 AND ai.auth_state=1
+				AND ui.user_id=#{userId} AND ai.parent_id=#{authId}
+	UNION
+	 SELECT DISTINCT ai.*  FROM user_info ui,user_group ug,group_role gr,role r,role_auth ra,auth_info ai
+		WHERE ui.group_id=ug.group_id AND ug.group_id=gr.group_id AND gr.role_id=r.role_id AND r.role_id=ra.role_id AND ra.auth_id=ai.auth_id
+			AND  ui.user_state=1 AND ug.group_state=1 AND ui.is_delete=0 AND r.role_state=1 AND ai.auth_state=1 
+				AND ui.user_id=#{userId} AND ai.parent_id=#{authId} AND ui.group_id=#{groupId}
+  </select>
+  <!-- 查找所有权限  更改权限  验证权限的名字 code url 是否可用-->
+  <select id="selectAllAuthInfo" parameterType="HashMap" resultMap="BaseResultMap">
+  	select * from auth_info 
+  	<where>
+  		<if test="authState==1">
+  			and auth_state=1
+  		</if>
+  		<if test="authName!=null and authName!=''">
+  			and auth_name=#{authName}
+  		</if>
+  		<if test="authCode!=null and authCode!=''">
+  			and auth_code=#{authCode}
+  		</if>
+  		<if test="authUrl!=null and authUrl!=''">
+  			and auth_url=#{authUrl}
+  		</if>
+  	</where>
+  </select>
+  
+  <select id="selectUserInfoAllAuth" parameterType="HashMap" resultMap="BaseResultMap">
+  	SELECT ai.*  FROM user_info ui,user_auth ua,auth_info ai
+	WHERE ui.user_id=ua.user_id AND ai.auth_id=ua.auth_id 
+		AND ui.user_state=1 AND ui.is_delete=0 AND ai.auth_state=1
+			AND ui.user_id=#{userId} 
+  </select>
+  <!-- 删除用户的权限 -->
+  <delete id="deleteUserAuthById" parameterType="Integer" >
+  		delete from user_auth where user_id=#{userId}
+  </delete>
+  <!-- 添加用户的权限 -->
+  <insert id="addUserAuth" parameterType="UserAuth">
+  	insert into user_auth(user_id,auth_id) values(#{userId},#{authId})
+  </insert>
+  <!-- 更改权限的名字和描述 -->
+  <update id="updateAuth" parameterType="AuthInfo" >
+  	update auth_info set auth_name=#{authName},auth_desc=#{authDesc} where auth_id=#{authId}
+  </update>
+  <insert id="addAuthInfo" parameterType="AuthInfo">
+   INSERT INTO auth_info(parent_id,auth_name,auth_desc,auth_url,auth_code) VALUES(#{parentId},#{authName},#{authDesc},#{authUrl},#{authCode})
+  </insert>
+  <!-- 恢复启用 -->
+  <update id="updateStateByAuthId" parameterType="Integer">
+  update auth_info set auth_state=1 where auth_id=#{authId}
+  </update>
+  
+   <!-- 禁用 -->
+  <update id="updateStateByAuthIdOff" parameterType="Integer">
+  update auth_info set auth_state=0 where auth_id=#{authId}
+  </update>
+  <delete id="deleteAuthByAuthId" parameterType="Integer">
+  		delete from auth_info where auth_id=#{authId}
+  </delete>
+</mapper>

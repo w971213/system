@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.byzx.mapper.GroupInfoMapper" >
+  <resultMap id="UserGroupMap" type="UserGroup" >
+    <id column="group_id" property="groupId" jdbcType="INTEGER" />
+    <result column="group_name" property="groupName" jdbcType="VARCHAR" />
+    <result column="group_code" property="groupCode" jdbcType="VARCHAR" />
+    <result column="group_desc" property="groupDesc" jdbcType="VARCHAR" />
+    <result column="group_state" property="groupState" jdbcType="CHAR" />
+    <collection property="groupRole" ofType="GroupRole">
+	    <result column="group_id" property="groupId" jdbcType="INTEGER" />
+	    <result column="role_id" property="roleId" jdbcType="INTEGER" />
+    </collection>
+  </resultMap>
+	<!-- 查询用户组列表 -->
+	<select id="selectGrouplist" parameterType="HashMap" resultMap="UserGroupMap">
+		SELECT * FROM user_group 
+		<where>
+			<include refid="selectGroupBycolumn"></include>
+		</where>
+		<if test="page != null and page !=''">
+			<if test="page.pageSize != null and page.currNo != null">
+				LIMIT #{page.limitIndex},#{page.pageSize}
+			</if>
+		</if>
+	</select>
+	<!-- 模糊查-->
+	<sql id="selectGroupBycolumn">
+		<if test="UserGroup.groupName != null and UserGroup.groupName!=''">
+			AND group_name like concat("%",#{UserGroup.groupName},"%")
+		</if>
+		<if test="UserGroup.groupState != null and UserGroup.groupState !=''">
+			and group_state=#{UserGroup.groupState}
+		</if>
+	</sql>
+	<!--  ajax 唯一验证 groupName groupCode group url -->
+	<select id="selectgroupInfo" parameterType="UserGroup" resultMap="UserGroupMap">
+		select * from user_group 
+		<where>
+			<if test="groupName!=null and groupName!=''">
+				AND group_name=#{groupName}
+			</if>
+			<if test="groupCode!=null and groupCode!=''">
+				and group_code = #{groupCode}
+			</if>
+		</where>
+	</select>
+	<!-- 启用禁用 -->
+	 <update id="updateUserStateById" parameterType="UserGroup">
+	  	UPDATE user_group SET group_state=#{groupState } where group_id=#{groupId}
+	 </update>
+	 <!-- 删除用户组 -->
+	 <delete id="deletegroupById" parameterType="Integer" >
+	 	delete from user_group where group_id=#{groupId}
+	 </delete>
+	<!-- 添加用户组 -->
+	<insert id="addgroup" parameterType="UserGroup">
+		INSERT INTO user_group(group_name,group_desc,group_code) VALUES(#{groupName},#{groupDesc},#{groupCode})
+	</insert>
+	<!-- 修改group -->
+	<update id="updategroup" parameterType="UserGroup">
+		update user_group set group_name=#{groupName},group_desc=#{groupDesc} where group_id = #{groupId}
+	</update>
+	<!-- 查询用户组的角色 -->
+	<select id="selectGroupRoleId" parameterType="Integer" resultMap="UserGroupMap">
+		SELECT  * FROM  group_role WHERE group_id=#{groupId}
+	</select>
+	<!-- 添加组的角色 -->
+	<insert id="addGroupRole" parameterType="GroupRole">
+		insert into group_role(group_id,role_id) values(#{groupId},#{roleId})
+	</insert>
+	<!-- 删除组的角色 -->
+	<delete id="deleteGroupRoleById" parameterType="Integer">
+		delete from group_role where group_id=#{groupId}
+	</delete>
+</mapper>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+	<mapper namespace="com.byzx.mapper.UserInfoMapper" >
+	  <resultMap id="BaseResultMap" type="UserInfo" >
+		    <id column="user_id" property="userId" jdbcType="INTEGER" />
+		    <result column="group_id" property="groupId" jdbcType="INTEGER" />
+		    <result column="nick_name" property="nickName" jdbcType="VARCHAR" />
+		    <result column="user_code" property="userCode" jdbcType="VARCHAR" />
+		    <result column="user_pwd" property="userPwd" jdbcType="VARCHAR" />
+		    <result column="user_type" property="userType" jdbcType="CHAR" />
+		    <result column="user_state" property="userState" jdbcType="CHAR" />
+		    <result column="is_delete" property="isDelete" jdbcType="CHAR" />
+		    <result column="create_by" property="createBy" jdbcType="INTEGER" />
+		    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		    <result column="update_by" property="updateBy" jdbcType="INTEGER" />
+		    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+	  </resultMap>
+	  
+	  <resultMap id="UserGroupMap" type="UserGroup" >
+	    <id column="group_id" property="groupId" jdbcType="INTEGER" />
+	    <result column="group_name" property="groupName" jdbcType="VARCHAR" />
+	    <result column="group_code" property="groupCode" jdbcType="VARCHAR" />
+	    <result column="group_desc" property="groupDesc" jdbcType="VARCHAR" />
+	    <result column="group_state" property="groupState" jdbcType="CHAR" />
+	  </resultMap>
+	  
+	  <resultMap id="UserRoleMap" type="com.byzx.vo.Role" >
+	    <id column="role_id" property="roleId" jdbcType="INTEGER" />
+	    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
+	  </resultMap>
+	 <!-- UserRole和Role关联表 -->
+	  <resultMap type="UserRole" id="UserRoleInfoMapper">
+		  	<id column="user_role_id" property="userRoleId" jdbcType="INTEGER" />
+		    <result column="role_id" property="roleId" jdbcType="INTEGER" />
+		    <result column="user_id" property="userId" jdbcType="INTEGER" />
+	   <collection property="role" ofType="Role">
+	    	<id column="role_id" property="roleId" jdbcType="INTEGER" />
+		    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
+		    <result column="role_state" property="roleState" jdbcType="CHAR" />
+	   </collection>
+	  </resultMap>
+	<!--   角色 -->
+	  <resultMap type="Role" id="UserRole1">
+	  		<id column="role_id" property="roleId" jdbcType="INTEGER" />
+		    <result column="role_name" property="roleName" jdbcType="VARCHAR" />
+		    <result column="role_state" property="roleState" jdbcType="CHAR" />
+	  </resultMap>
+  <!-- 验证登录 -->
+  <select id="selectUserByUserCode" resultMap="BaseResultMap" parameterType="UserInfo">
+	SELECT * FROM user_info WHERE user_code=#{userCode} AND user_pwd=MD5(#{userPwd}) and is_delete=0
+  </select>
+<!--   模糊查询 -->
+  <sql id="selectUserInfo">
+  		AND ui.group_id=ug.group_id AND ui.user_type=r.role_id AND ui.is_delete=0
+  		<if test="user.userCode!='' and user.userCode!=null">
+  			AND ui.user_code like concat("%",#{user.userCode},"%")
+  		</if>
+  		<if test="user.userType!=0 and user.userType!=null">
+  			AND ui.user_type=#{user.userType}
+  		</if>
+  		<if test="user.userState!='' and user.userState!=null">
+  			AND ui.user_state=#{user.userState}
+  		</if>
+  </sql>
+  <!-- 查找用户 -->
+  <select id="selectAllUser" resultType="UserList" parameterType="HashMap">
+  	SELECT ui.group_id,ui.user_id,ui.nick_name,ui.user_code,ug.group_name,r.role_name,ui.user_state,ui.create_time FROM user_info ui,user_group ug,role r
+		<where>
+			<include refid="selectUserInfo"></include>
+		</where>
+  </select>
+  <!-- 验证用户名是否可用 -->
+  <select id="selectUserInfoByUserCode" parameterType="String" resultMap="BaseResultMap">
+  	select * from user_info where user_code=#{userCode}
+  </select>
+  <!-- 分页查询 -->
+  <select id="selectByPage" resultType="UserList" parameterType="HashMap">
+  		SELECT ui.group_id, ui.user_id,ui.nick_name,ui.user_code,ug.group_name,r.role_name,ui.user_state,ui.create_time FROM user_info ui,user_group ug,role r
+		<where>
+			<include refid="selectUserInfo"></include>
+			LIMIT #{page.limitIndex},#{page.pageSize}
+		</where>
+  </select>
+  <!-- 查看所有的组 -->
+  <select id="selectAllGroup" resultMap="UserGroupMap">
+  		SELECT * FROM user_group
+  </select>
+  <!-- 查找所有角色 -->
+  <select id="selectAllRole"   resultMap="UserRoleMap">
+  		SELECT  role_id, role_name FROM role
+  </select>
+  
+  <!-- 查找用户的角色 -->
+  <select id="selectUserRole" parameterType="Integer" resultMap="UserRoleInfoMapper">
+  		SELECT ur.user_id,r.role_id,r.role_name FROM user_role ur,role r
+		   where ur.role_id=r.role_id AND r.role_state=1
+			   and ur.user_id=#{userId}
+	
+  </select>
+  <!-- 删除用户的角色 -->
+  <delete id="deleteUserRoleById" parameterType="Integer">
+  		delete from user_role where user_id=#{userId}
+  </delete>
+  <!-- 添加用户角色 -->
+  <insert id="addUserRole" parameterType="UserRole">
+  	insert into user_role(user_id,role_id) values (#{userId},#{roleId})
+  </insert>
+ <!--  更改用户状态 -->
+  <update id="updateUserStateById" parameterType="UserInfo">
+  	UPDATE user_info SET user_state=#{userState } where user_id=#{userId}
+  </update>
+  <!-- 更改默认密码 -->
+  <update id="updateUserPwdById" parameterType="Integer">
+  	UPDATE user_info SET user_pwd =MD5(123456) WHERE user_id=#{userId}
+  </update>
+  <!-- isdelete用户 -->
+  <update id="deleteUserInfo" parameterType="Integer" >
+  	UPDATE user_info SET is_delete =1 WHERE user_id=#{userId}
+  </update>
+  <!-- 修改用户资料 -->
+  <update id="updateUserInfoById" parameterType="UserInfo">
+  	UPDATE user_info SET nick_name=#{nickName}, group_id=#{groupId} where user_id=#{userId}
+  </update>
+  
+  <!-- 添加用户 -->
+  <insert id="addUserInfo" parameterType="UserInfo">
+  	INSERT INTO user_info(group_id,nick_name,user_code,user_pwd,create_by) VALUES(#{groupId},#{nickName},#{userCode},MD5(#{userPwd}) ,#{createBy})
+  </insert>
+  <!-- 查找用户信息通过userId -->
+	<select id="selectUserInfoById" parameterType="Integer" resultMap="BaseResultMap">
+	select * from  user_info where user_state=1 and is_delete=0 and user_id=#{userId}
+	</select>  
+</mapper>
