@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.school.dao.TeacherMapper">
+
+	<!-- 教师登录验证 -->
+	<select id="findTeacherById" parameterType="String" resultType="Teacher">
+		SELECT t_id tid,t_key tkey,t_name tname,
+			t_sex tsex,t_age tage,t_phone tphone,t_mail tmail 
+				FROM teacher WHERE t_id=#{tid}
+	</select>
+	<!-- 教师修改密码 -->
+	<update id="updatePassword" parameterType="Teacher" >
+		update teacher set t_key=#{tkey} where t_id=#{tid} 
+	</update>
+	
+	<resultMap type="Teacher" id="showCourse">
+			<result column="t_name" property="tname"></result>
+		<collection property="course" ofType="Course">
+			<id column="c_id" property="cid" ></id>
+			<result column="c_name" property="cname"></result>
+			<result column="c_credit" property="credit"></result>
+			<result column="c_max" property="cmax"></result>
+			<result column="c_precid" property="cprecid"></result>
+			<result column="c_type" property="ctype"></result>
+		</collection>
+	</resultMap>
+	<!-- 展示老师的课 -->
+	<select id="showRequireCourse" parameterType="User" resultMap="showCourse">
+		SELECT c.*,t.t_name  FROM course c,teacher t
+	WHERE c.c_tid=t.t_id AND t.t_id=#{name}
+	</select>
+	<!-- 教师开课系统 -->
+	<insert id="addEleCour" parameterType="Course">
+		insert into course values(null,#{ctid},#{cname},#{ctype},#{credit},#{cmax},#{cnote},#{cprecid})
+	</insert>
+	
+	<resultMap id="detilCour" type="Student">
+			<result column="s_name" property="s_name"></result>
+		<collection property="elect" ofType="Elect">
+			<id column="s_id" property="sid"></id>
+			<result column="score" property="score"></result>
+		</collection>
+	</resultMap>
+	<!-- 查询选修本节课的学生 -->
+	<select id="showStudentInCourse" parameterType="int" resultMap="detilCour">
+		SELECT e.s_id,s.s_name,e.score FROM elect e,student s
+	WHERE e.s_id=s.Sid AND e.c_id=#{cid}
+	</select>
+	<!-- 通过id查课程 -->
+	<select id="findCourseById" parameterType="int" resultType="Course">
+		SELECT c_id cid, c_name cname,c_type ctype,c_credit credit,c_max cmax,c_precid cprecid  FROM course WHERE c_id=#{cid}
+	</select>
+	<!-- 更改学生成绩 -->
+	<update id="writeScore" parameterType="Elect">
+		UPDATE elect SET score=#{score} WHERE s_id=#{sid} AND c_id=#{cid}
+	</update>
+	<select id="findSccoreBySidAndCid" parameterType="Elect" resultType="Elect">
+		SELECT score FROM elect WHERE s_id =#{sid} AND c_id=#{cid}
+	</select>
+	<!-- 更改学生学分 -->
+	<update id="updateStudentCredit" parameterType="Student">
+		UPDATE student SET s_credit =s_credit+#{s_credit} WHERE sid=#{sid}
+	</update>
+	
+</mapper>

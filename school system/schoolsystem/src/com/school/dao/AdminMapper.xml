@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.school.dao.AdminMapper">
+	<!-- 登录验证 -->
+	<select id="findAdminById" parameterType="String" resultType="Admin">
+		select * from admin where a_id=#{aid}
+	</select>
+	
+	<!-- 全查学生 -->
+	<select id="findAllStudent" resultType="Student">
+		select *  from student
+		<where>
+			<include refid="findStudentByName"></include>
+		</where>
+	</select>
+	
+	<sql id="findStudentByName">
+		<if test="s_name!=null">
+			and s_name like #{sid}
+		</if>
+	</sql>
+	<!-- 全查老师 -->
+	<select id="findAllTeacher" resultType="Teacher">
+		SELECT t_id tid,t_key tkey,t_name tname,t_sex tsex,t_age tage,t_phone tphone,t_mail tmail  FROM teacher
+		<where>
+			<include refid="findTeacherByName"></include>
+		</where>
+	</select>	
+	
+	<sql id="findTeacherByName">
+		<if test="tname!=null">
+			and t_name like #{tid}
+		</if>
+	</sql>
+	<!-- 添加学生 -->
+	<insert id="addStudent" parameterType="Student">
+		INSERT INTO student VALUES(#{sid},#{s_key},#{s_name},#{s_sex},#{s_age},#{s_credit},#{s_address},#{s_phone},#{s_email})
+	</insert>
+	<!-- 添加老师 -->
+	<insert id="addTeacher" parameterType="Teacher">
+		INSERT INTO teacher VALUES(#{tid},#{tkey},#{tname},#{tsex},#{tage},#{tphone},#{tmail}) 
+	</insert>
+	<!-- 删除学生 -->
+	<delete id="deleteStudent" parameterType="User">
+		delete from student where sid=#{sid}
+	</delete>
+	<!-- 删除老师 -->
+	<delete id="deleteTeacher" parameterType="User">
+		delete from student where t_id=#{sid}
+	</delete>
+	<!-- 根据id查课程 -->
+	<select id="findCourseBytid" parameterType="User" resultType="Course">
+		SELECT c_name cname FROM course WHERE c_tid=#{sid}
+	</select>
+	<!-- 更改学生信息 -->
+	<update id="updateStudent" parameterType="Student">
+		UPDATE student SET s_key=#{s_key},s_name=#{s_name},s_sex=#{s_sex},s_age=#{s_age},s_address=#{s_address},s_phone=#{s_phone},s_email=#{s_email}
+		 where sid=#{sid}
+	</update>
+	<!-- 根据id查学生 -->
+	<select id="findStuById" parameterType="User" resultType="Student">
+		select * from student where sid=#{sid}
+	</select>
+	<!-- 根据id查教师 -->
+	<select id="findTeaById" parameterType="User" resultType="Teacher">
+		SELECT t_id tid,t_key tkey,t_name tname,
+			t_sex tsex,t_age tage,t_phone tphone,t_mail tmail 
+				FROM teacher WHERE t_id=#{sid}
+	</select>
+	<!-- 更改教师信息 -->
+	<update id="updateTeacher" parameterType="Teacher">
+		UPDATE teacher SET t_key=#{tkey},t_name=#{tname},t_sex=#{tsex},t_age=#{tage},t_phone=#{tphone},t_mail=#{tmail} where t_id=#{tid}	
+	</update>
+</mapper>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.school.dao.StudentMapper">
+	<!-- 登录验证 -->
+	<select id="findStuById" parameterType="String" resultType="Student">
+		select * from student where sid=#{sid}
+	</select>
+	<update id="updatePassword" parameterType="Student" >
+		update student set s_key=#{s_key} where Sid=#{sid} 
+	</update>
+	
+	<resultMap type="Teacher" id="showCourse">
+			<result column="t_name" property="tname"></result>
+		<collection property="course" ofType="Course">
+			<id column="c_id" property="cid" ></id>
+			<result column="c_name" property="cname"></result>
+			<result column="c_credit" property="credit"></result>
+			<result column="c_max" property="cmax"></result>
+			<result column="c_precid" property="cprecid"></result>
+			<result column="c_type" property="ctype"></result>
+		</collection>
+	</resultMap>
+	<select id="showRequireCourse" parameterType="Course" resultMap="showCourse">
+	SELECT c.c_id,c.c_name,c.c_credit,c.c_max,t.t_name FROM course c,teacher t 
+		<where>
+			and c.c_tid=t.t_id AND c_type='必修' 
+			<include refid="findCourByName"></include>
+		</where>
+	</select>
+	<sql id="findCourByName">
+			<if test="cname!=null">
+				and c.c_name like #{cnote}
+			</if>
+	</sql>
+	<select id="showElectiveCourse" parameterType="Course" resultMap="showCourse">
+	SELECT c.c_id,c.c_name,c.c_precid,c.c_credit,c.c_max,t.t_name FROM course c,teacher t 
+		<where>
+			and c.c_tid=t.t_id AND c_type='选修' 
+			<include refid="findCourByName"></include>
+		</where>
+	</select>
+	
+	<select id="findElectCour" parameterType="String" resultMap="showCourse">
+		SELECT c.c_type,c.c_id,c.c_name,c.c_precid,c.c_credit,c.c_max,t.t_name FROM elect e,student s,course c,teacher t
+			WHERE e.s_id=s.sid AND e.c_id= c.c_id AND c.c_tid=t.t_id AND c_type='选修'
+				 AND s.sid= #{sid}
+	</select>
+	<insert id="addElectCour" parameterType="Elect" >
+		insert into elect values(#{sid},#{cid},0.0);
+	</insert>
+	
+	<delete id="deleteCourse" parameterType="Elect">
+		delete from elect where s_id=#{sid} and c_id=#{cid}
+	</delete>
+	
+	<select id="findCourByCid" parameterType="int" resultType="Course">
+		SELECT c_max cmax,c_precid cprecid  FROM course WHERE c_id=#{cid}
+	</select>
+	
+	<update id="updateCoursePre" parameterType="int">
+		UPDATE course SET c_precid =c_precid+1 WHERE c_id=#{cid}
+	</update>
+	
+	<update id="updateCoursePre1" parameterType="int">
+		UPDATE course SET c_precid =c_precid-1 WHERE c_id=#{cid}
+	</update>
+	
+</mapper>

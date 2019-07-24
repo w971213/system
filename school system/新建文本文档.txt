@@ -1,0 +1,115 @@
+/*
+SQLyog Ultimate v12.09 (64 bit)
+MySQL - 5.7.11 : Database - elect
+*********************************************************************
+*/
+
+/*!40101 SET NAMES utf8 */;
+
+/*!40101 SET SQL_MODE=''*/;
+
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/`elect` /*!40100 DEFAULT CHARACTER SET utf8 */;
+
+USE `elect`;
+
+/*Table structure for table `admin` */
+
+DROP TABLE IF EXISTS `admin`;
+
+CREATE TABLE `admin` (
+  `a_id` varchar(20) DEFAULT NULL,
+  `a_key` varchar(10) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Data for the table `admin` */
+
+insert  into `admin`(`a_id`,`a_key`) values ('1300394525','971213');
+
+/*Table structure for table `course` */
+
+DROP TABLE IF EXISTS `course`;
+
+CREATE TABLE `course` (
+  `c_id` int(4) NOT NULL AUTO_INCREMENT,
+  `c_tid` varchar(20) DEFAULT NULL,
+  `c_name` varchar(20) DEFAULT NULL,
+  `c_type` varchar(20) DEFAULT NULL,
+  `c_credit` float DEFAULT NULL,
+  `c_max` int(4) DEFAULT NULL,
+  `c_note` tinytext,
+  `c_precid` int(4) DEFAULT NULL,
+  PRIMARY KEY (`c_id`),
+  KEY `c_tid` (`c_tid`),
+  CONSTRAINT `course_ibfk_1` FOREIGN KEY (`c_tid`) REFERENCES `teacher` (`t_id`) ON DELETE NO ACTION ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=117 DEFAULT CHARSET=utf8;
+
+/*Data for the table `course` */
+
+insert  into `course`(`c_id`,`c_tid`,`c_name`,`c_type`,`c_credit`,`c_max`,`c_note`,`c_precid`) values (101,'1001','语文','必修',1.5,20,NULL,0),(102,'1002','数学','必修',1.5,20,NULL,0),(103,'1003','英语','必修',1.5,20,NULL,0),(104,'1004','体育','必修',2,20,NULL,0),(105,'1005','太极','选修',1.5,20,NULL,0),(106,'1006','毛概','必修',2,20,NULL,0),(107,'1007','篮球','选修',0.5,20,NULL,0),(108,'1008','足球','选修',0.5,20,NULL,0),(109,'1009','历史','选修',2,15,NULL,0),(110,'1012','羽毛球','必修',2,15,NULL,0),(111,'1010','排球','选修',1.5,15,NULL,0),(112,'1011','音乐','必修',1.5,20,NULL,0),(113,'1006','化学','选修',0.5,20,'不对外院开放',1),(114,'1006','物理','选修',1,35,'全校学生',0),(115,'1007','学前教育','选修',1,40,'',0),(116,'1002','运动解剖学','选修',1,30,'',0);
+
+/*Table structure for table `elect` */
+
+DROP TABLE IF EXISTS `elect`;
+
+CREATE TABLE `elect` (
+  `s_id` varchar(20) NOT NULL,
+  `c_id` int(4) NOT NULL,
+  `score` float DEFAULT '0',
+  PRIMARY KEY (`s_id`,`c_id`),
+  KEY `c_id` (`c_id`),
+  CONSTRAINT `elect_ibfk_1` FOREIGN KEY (`s_id`) REFERENCES `student` (`sid`),
+  CONSTRAINT `elect_ibfk_2` FOREIGN KEY (`c_id`) REFERENCES `course` (`c_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Data for the table `elect` */
+
+insert  into `elect`(`s_id`,`c_id`,`score`) values ('15110101000',113,71);
+
+/*Table structure for table `student` */
+
+DROP TABLE IF EXISTS `student`;
+
+CREATE TABLE `student` (
+  `sid` varchar(20) NOT NULL,
+  `s_key` varchar(40) DEFAULT NULL,
+  `s_name` varchar(20) DEFAULT NULL,
+  `s_sex` varchar(2) DEFAULT NULL,
+  `s_age` int(4) DEFAULT NULL,
+  `s_credit` float DEFAULT NULL,
+  `s_address` varchar(50) DEFAULT 'null',
+  `s_phone` varchar(50) DEFAULT NULL,
+  `s_email` varchar(50) DEFAULT 'null',
+  PRIMARY KEY (`sid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Data for the table `student` */
+
+insert  into `student`(`sid`,`s_key`,`s_name`,`s_sex`,`s_age`,`s_credit`,`s_address`,`s_phone`,`s_email`) values ('15110101000','971213','王天才','男',21,0.5,' 河南南阳','15890863862','1300394525@qq.com'),('15110101001','111111','安时名','男',19,0,'河北石家庄','15110101117','null'),('15110101002','222222','曹博','男',19,0,'陕西西安','15890863862','null');
+
+/*Table structure for table `teacher` */
+
+DROP TABLE IF EXISTS `teacher`;
+
+CREATE TABLE `teacher` (
+  `t_id` varchar(20) NOT NULL,
+  `t_key` varchar(40) DEFAULT NULL,
+  `t_name` char(20) DEFAULT NULL,
+  `t_sex` varchar(2) DEFAULT NULL,
+  `t_age` int(4) DEFAULT NULL,
+  `t_phone` varchar(50) DEFAULT NULL,
+  `t_mail` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`t_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Data for the table `teacher` */
+
+insert  into `teacher`(`t_id`,`t_key`,`t_name`,`t_sex`,`t_age`,`t_phone`,`t_mail`) values ('1001','11111','陈亚琳','男',37,'15529344371',''),('1002','2222','文安','男',40,NULL,''),('1003','3333','项丽静','女',46,NULL,''),('1004','4444','杨萌','男',38,NULL,''),('1005','5555','王维明','男',63,NULL,''),('1006','000000','宋泽兵','男',21,'15529344371','1300394525@qq.com'),('1007','7777','康佳乐','男',32,NULL,''),('1008','8888','赵权','男',49,NULL,''),('1009','9999','rose','女',23,NULL,''),('1010','1010','孙尚香','女',19,NULL,''),('1011','1111','曹操','男',56,NULL,''),('1012','1212','西施','女',NULL,NULL,''),('1014','141414','华安','男',36,'15890863862','');
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
